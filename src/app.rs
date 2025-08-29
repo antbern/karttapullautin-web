@@ -291,7 +291,7 @@ fn recursive_dir(
     depth: usize,
     radio: &mut PathBuf,
 ) {
-    // iterate all subfolder recusively
+    // iterate all subfolder recursively
     let mut subdirs = dir.subdirs.iter().collect::<Vec<_>>();
     subdirs.sort_by(|(a, _), (b, _)| a.cmp(b));
     for (name, sub_dir) in subdirs {
