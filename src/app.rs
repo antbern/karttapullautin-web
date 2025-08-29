@@ -239,21 +239,19 @@ impl eframe::App for TemplateApp {
                     if let Some(bytes) = &file.bytes {
                         let mut writer = BufWriter::new(self.fs.create(&file.name).unwrap());
                         writer.write_all(bytes).unwrap();
-                    } else {
-                        if let Some(path) = &file.path {
-                            let target = if let Some(name) = path.file_name() {
-                                std::path::Path::new(name)
-                            } else {
-                                std::path::Path::new("dropped_file.laz")
-                            };
-
-                            warn!("Loading dropped file from disk: {:?} -> {:?}", path, target);
-                            self.fs
-                                .load_from_disk(&path, target)
-                                .expect("Failed to load file");
+                    } else if let Some(path) = &file.path {
+                        let target = if let Some(name) = path.file_name() {
+                            std::path::Path::new(name)
                         } else {
-                            warn!("Dropped file has no bytes nor a path, could not load!");
-                        }
+                            std::path::Path::new("dropped_file.laz")
+                        };
+
+                        warn!("Loading dropped file from disk: {:?} -> {:?}", path, target);
+                        self.fs
+                            .load_from_disk(path, target)
+                            .expect("Failed to load file");
+                    } else {
+                        warn!("Dropped file has no bytes nor a path, could not load!");
                     }
                 }
             }
