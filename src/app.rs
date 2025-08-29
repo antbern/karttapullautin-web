@@ -9,8 +9,8 @@ use log::{debug, info, warn};
 use pullauta::io::{
     bytes::FromToBytes,
     fs::{
-        memory::{Directory, MemoryFileSystem},
         FileSystem,
+        memory::{Directory, MemoryFileSystem},
     },
 };
 
@@ -166,17 +166,17 @@ impl eframe::App for TemplateApp {
                     let filename = self.radio.file_name().unwrap_or_default().to_string_lossy();
 
                     if filename.ends_with(".png") {
-                        if let Ok(img) = self.fs.read_image_png(&self.radio) {
-                            if let Some(texture) = &mut self.screen_texture {
-                                // upload the image data to the texture
-                                texture.set(
-                                    ColorImage::from_rgb(
-                                        [img.width() as usize, img.height() as usize],
-                                        &img.to_rgb8().into_raw(),
-                                    ),
-                                    TextureOptions::default(),
-                                );
-                            }
+                        if let Ok(img) = self.fs.read_image_png(&self.radio)
+                            && let Some(texture) = &mut self.screen_texture
+                        {
+                            // upload the image data to the texture
+                            texture.set(
+                                ColorImage::from_rgb(
+                                    [img.width() as usize, img.height() as usize],
+                                    &img.to_rgb8().into_raw(),
+                                ),
+                                TextureOptions::default(),
+                            );
                         }
                     } else if filename.ends_with(".hmap") {
                         let mut reader = BufReader::new(self.fs.open(&self.radio).unwrap());

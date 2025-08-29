@@ -17,7 +17,7 @@ fn main() -> eframe::Result {
     eframe::run_native(
         "eframe template",
         native_options,
-        Box::new(|cc| Ok(Box::new(pullauta_web::TemplateApp::new(cc)))),
+        Box::new(|cc| Ok(Box::new(karttapullautin_web::TemplateApp::new(cc)))),
     )
 }
 
@@ -48,7 +48,7 @@ fn main() {
             .start(
                 canvas,
                 web_options,
-                Box::new(|cc| Ok(Box::new(pullauta_web::TemplateApp::new(cc)))),
+                Box::new(|cc| Ok(Box::new(karttapullautin_web::TemplateApp::new(cc)))),
             )
             .await;
 
