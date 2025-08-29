@@ -2342,7 +2342,7 @@ dependencies = [
 [[package]]
 name = "pullauta"
 version = "2.9.4"
-source = "git+https://github.com/antbern/rusty-pullauta?branch=feature%2Fweb-app#f0dbcb776731c9b22eef9e1ce420e758d5072780"
+source = "git+https://github.com/antbern/rusty-pullauta?branch=feature%2Fweb-app#dfb29b7b22aa3a779854212f7ac13121c030a552"
 dependencies = [
  "anyhow",
  "bincode",
