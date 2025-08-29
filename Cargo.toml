@@ -24,7 +24,7 @@ log = "0.4"
 serde = { version = "1", features = ["derive"] }
 
 # Access the pullauta library and make sure that the "shapefile" feature is not enabled (for now)
-pullauta = { path = "../", default-features = false }
+pullauta = { git = "https://github.com/antbern/rusty-pullauta", branch = "feature/web-app", default-features = false }
 
 image = { version = "0.25.2", default-features = false, features = [ ] }
 
