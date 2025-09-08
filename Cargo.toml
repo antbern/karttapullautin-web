@@ -31,7 +31,7 @@ serde = { version = "1", features = ["derive"] }
 # Access the pullauta library and make sure that the "shapefile" feature is not enabled (for now)
 pullauta = { git = "https://github.com/antbern/rusty-pullauta", branch = "feature/web-app", default-features = false }
 
-image = { version = "0.25.2", default-features = false, features = [ ] }
+image = { version = "0.25", default-features = false }
 
 egui_logger = "0.8"
 
@@ -55,6 +55,12 @@ opt-level = 2
 
 
 [patch.crates-io]
+
+# pathed to include non-published fix for WASM compilation compatibility
+dbase = { git = "https://github.com/tmontaigu/dbase-rs" }
+
+# # uncomment to use local path for pullauta crate
+# pullauta = { path = "../rusty-pullauta/" }
 
 # If you want to use the bleeding edge version of egui and eframe:
 # egui = { git = "https://github.com/emilk/egui", branch = "master" }
