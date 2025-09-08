@@ -59,7 +59,8 @@ opt-level = 2
 # pathed to include non-published fix for WASM compilation compatibility
 dbase = { git = "https://github.com/tmontaigu/dbase-rs" }
 
-# # uncomment to use local path for pullauta crate
+[patch."https://github.com/antbern/rusty-pullauta"]
+# uncomment to use local path for pullauta crate
 # pullauta = { path = "../rusty-pullauta/" }
 
 # If you want to use the bleeding edge version of egui and eframe:

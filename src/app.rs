@@ -132,15 +132,39 @@ impl eframe::App for TemplateApp {
                         let config = pullauta::config::Config::default();
                         let thread = String::new();
                         let tmpfolder = PathBuf::from(format!("temp{}", thread));
-                        pullauta::process::process_tile(
+                        if let Err(e) = pullauta::process::process_tile(
                             &fs,
                             &config,
                             &thread,
                             &tmpfolder,
                             &self.radio,
                             false,
-                        )
-                        .expect("Failed to process LAZ file");
+                        ) {
+                            log::error!("Failed to process LAZ file: {}", e);
+                        }
+                    }
+                }
+
+                if ui.button("Process Shapefiles").clicked() {
+                    let fs = self.fs.clone();
+
+                    // hard-code osm vectorconf for now (although you need to manually import the actual file)
+                    let config = pullauta::config::Config {
+                        vectorconf: "osm.txt".to_string(),
+                        ..Default::default()
+                    };
+
+                    let thread = String::new();
+                    let tmpfolder = PathBuf::from(format!("temp{}", thread));
+                    if let Err(e) = pullauta::process::process_zip(
+                        &fs,
+                        &config,
+                        &thread,
+                        &tmpfolder,
+                        &[],
+                        false,
+                    ) {
+                        log::error!("Failed to process Shapefiles: {}", e);
                     }
                 }
             });
@@ -236,15 +260,23 @@ impl eframe::App for TemplateApp {
                 for file in &i.raw.dropped_files {
                     debug!("Importing dropped file: {} ({:?})", file.name, file.path,);
 
+                    // auto-detect shapefiles and put them into a separate folder:
+                    let target = if file.name.ends_with(".shp")
+                        || file.name.ends_with("dbf")
+                        || file.name.ends_with("shx")
+                        || file.name.ends_with("prj")
+                    {
+                        self.fs.create_dir_all("temp_shapefiles").unwrap();
+                        format!("temp_shapefiles/{}", file.name)
+                    } else {
+                        file.name.clone()
+                    };
+
                     if let Some(bytes) = &file.bytes {
-                        let mut writer = BufWriter::new(self.fs.create(&file.name).unwrap());
+                        let mut writer = BufWriter::new(self.fs.create(&target).unwrap());
                         writer.write_all(bytes).unwrap();
                     } else if let Some(path) = &file.path {
-                        let target = if let Some(name) = path.file_name() {
-                            std::path::Path::new(name)
-                        } else {
-                            std::path::Path::new("dropped_file.laz")
-                        };
+                        let target = std::path::Path::new(&target);
 
                         warn!("Loading dropped file from disk: {:?} -> {:?}", path, target);
                         self.fs
