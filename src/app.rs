@@ -1,8 +1,4 @@
-use std::{
-    io::{BufReader, BufWriter, Write},
-    path::PathBuf,
-    sync::Arc,
-};
+use std::{io::Write, path::PathBuf, sync::Arc};
 
 use egui::{CollapsingHeader, Color32, ColorImage, ImageData, TextureHandle, TextureOptions};
 use log::{debug, info, warn};
@@ -125,6 +121,13 @@ impl eframe::App for TemplateApp {
                 if let Some(name) = self.radio.file_name() {
                     let name = name.to_string_lossy();
 
+                    #[cfg(target_arch = "wasm32")]
+                    if ui.button("Download File").clicked()
+                        && let Err(e) = download_file(&self.fs, &self.radio)
+                    {
+                        log::error!("Error downloading file: {e:?}");
+                    }
+
                     if name.ends_with(".laz") && ui.button("Process LAZ").clicked() {
                         info!("Processing LAZ file: {:?}", self.radio);
                         // TODO: call pullauta function to process LAZ file
@@ -226,7 +229,7 @@ impl eframe::App for TemplateApp {
                             );
                         }
                     } else if filename.ends_with(".hmap") {
-                        let mut reader = BufReader::new(self.fs.open(&self.radio).unwrap());
+                        let mut reader = self.fs.open(&self.radio).unwrap();
                         let hmap =
                             pullauta::io::heightmap::HeightMap::from_bytes(&mut reader).unwrap();
 
@@ -295,7 +298,7 @@ impl eframe::App for TemplateApp {
                     };
 
                     if let Some(bytes) = &file.bytes {
-                        let mut writer = BufWriter::new(self.fs.create(&target).unwrap());
+                        let mut writer = self.fs.create(&target).unwrap();
                         writer.write_all(bytes).unwrap();
                     } else if let Some(path) = &file.path {
                         let target = std::path::Path::new(&target);
@@ -400,6 +403,62 @@ fn preview_files_being_dropped(ctx: &egui::Context) {
             Color32::WHITE,
         );
     }
+}
+
+/// Downloads a file in the browser.
+#[cfg(target_arch = "wasm32")]
+fn download_file(fs: &impl FileSystem, path: &std::path::Path) -> anyhow::Result<()> {
+    use std::io::Read;
+
+    use anyhow::Context;
+    use base64::{Engine, prelude::BASE64_STANDARD};
+    use wasm_bindgen::JsCast;
+    use web_sys;
+
+    info!("Downloading {}", path.display());
+
+    let Some(file_name) = path.file_name() else {
+        anyhow::bail!("File has no name");
+    };
+
+    let Some(file_extension) = path.extension() else {
+        anyhow::bail!("File has no extension");
+    };
+
+    let mut file = fs.open(path).context("open file for download")?;
+    let mut buffer = Vec::new();
+    file.read_to_end(&mut buffer)?;
+
+    // guess the mime type from the file extension:
+    let mime = match file_extension.to_string_lossy().to_lowercase().as_str() {
+        "png" => "image/png",
+        "pgw" => "text/plain",
+        "zip" => "application/zip",
+        "jpeg" | "jpg" => "image/jpeg",
+        _ => "application/octet-stream", // default to pure binary data
+    };
+
+    // create the data-url containing the base64-encoded file data
+    let mut string_buf = format!("data:{mime};base64,");
+    BASE64_STANDARD.encode_string(&buffer, &mut string_buf);
+
+    // create the <a> element and click it
+    let win = web_sys::window().unwrap();
+    let doc = win.document().unwrap();
+
+    let link = doc.create_element("a").unwrap();
+    link.set_attribute("href", &string_buf)
+        .map_err(|_| anyhow::anyhow!("could not set href attribute"))?;
+    link.set_attribute("download", &file_name.to_string_lossy())
+        .map_err(|_| anyhow::anyhow!("could not set download attribute"))?;
+
+    let link: web_sys::HtmlAnchorElement =
+        web_sys::HtmlAnchorElement::unchecked_from_js(link.into());
+    link.click();
+
+    link.remove();
+
+    Ok(())
 }
 
 // fn powered_by_egui_and_eframe(ui: &mut egui::Ui) {
