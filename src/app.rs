@@ -143,9 +143,32 @@ impl eframe::App for TemplateApp {
                             log::error!("Failed to process LAZ file: {}", e);
                         }
                     }
+
+                    if name.ends_with(".zip") && ui.button("Process Shapefile ZIP").clicked() {
+                        let fs = self.fs.clone();
+
+                        // hard-code osm vectorconf for now (although you need to manually import the actual file)
+                        let config = pullauta::config::Config {
+                            vectorconf: "osm.txt".to_string(),
+                            ..Default::default()
+                        };
+
+                        let thread = String::new();
+                        let tmpfolder = PathBuf::from(format!("temp{}", thread));
+                        if let Err(e) = pullauta::process::process_zip(
+                            &fs,
+                            &config,
+                            &thread,
+                            &tmpfolder,
+                            &[name.to_string()],
+                            false,
+                        ) {
+                            log::error!("Failed to process Shapefiles: {}", e);
+                        }
+                    }
                 }
 
-                if ui.button("Process Shapefiles").clicked() {
+                if ui.button("Process Shapefiles in temp_shapefiles").clicked() {
                     let fs = self.fs.clone();
 
                     // hard-code osm vectorconf for now (although you need to manually import the actual file)
@@ -245,8 +268,7 @@ impl eframe::App for TemplateApp {
             }
 
             if let Some(texture) = &self.screen_texture {
-                // TODO: how can we scae the image to fit the screen? And how can we zoom in/out
-                // and pan?
+                // TODO: how can we scale the image to fit the screen? And how can we zoom in/out and pan?
                 ui.add(egui::Image::from(&texture.clone()).shrink_to_fit());
             }
         });
