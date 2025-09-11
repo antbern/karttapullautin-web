@@ -1581,6 +1581,8 @@ dependencies = [
 name = "karttapullautin_web"
 version = "0.1.0"
 dependencies = [
+ "anyhow",
+ "base64",
  "eframe",
  "egui",
  "egui_logger",
@@ -1590,6 +1592,7 @@ dependencies = [
  "log",
  "pullauta",
  "serde",
+ "wasm-bindgen",
  "wasm-bindgen-futures",
  "web-sys",
 ]
